@@ -27,8 +27,9 @@ def test_run_backtest_applies_previous_day_signal(bars: list[DailyBar]) -> None:
 
     assert result.trades == 2
     assert result.equity_curve[1].position == pytest.approx(1.0)
+    assert result.equity_curve[1].equity == pytest.approx(10_100.0)
     assert result.equity_curve[3].position == pytest.approx(0.0)
-    assert result.ending_equity == pytest.approx(10_099.009900990099)
+    assert result.ending_equity == pytest.approx(10_300.0)
 
 
 def test_run_backtest_charges_trading_friction(bars: list[DailyBar]) -> None:

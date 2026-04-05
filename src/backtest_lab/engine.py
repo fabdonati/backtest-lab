@@ -33,9 +33,6 @@ def run_backtest(
     trades = 0
 
     for previous_bar, current_bar in zip(ordered_bars, ordered_bars[1:], strict=False):
-        daily_return = (current_bar.close / previous_bar.close) - 1.0
-        equity *= 1.0 + (current_position * daily_return)
-
         target_position = signal_map.get(previous_bar.date, current_position)
         turnover = abs(target_position - current_position)
         if turnover > 0:
@@ -47,6 +44,8 @@ def run_backtest(
             trades += 1
 
         current_position = target_position
+        daily_return = (current_bar.close / previous_bar.close) - 1.0
+        equity *= 1.0 + (current_position * daily_return)
         equity_curve.append(
             EquityPoint(
                 date=current_bar.date,
