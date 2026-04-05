@@ -1,0 +1,40 @@
+from __future__ import annotations
+
+from datetime import date
+
+import pytest
+
+from backtest_lab.engine import run_backtest
+from backtest_lab.models import DailyBar, Signal
+
+
+@pytest.fixture
+def bars() -> list[DailyBar]:
+    closes = [100.0, 101.0, 103.0, 102.0, 104.0]
+    return [
+        DailyBar(date(2025, 1, day), "AAPL", close - 1, close + 1, close - 2, close, 1_000)
+        for day, close in enumerate(closes, start=2)
+    ]
+
+
+def test_run_backtest_applies_previous_day_signal(bars: list[DailyBar]) -> None:
+    signals = [
+        Signal(date(2025, 1, 2), 1.0),
+        Signal(date(2025, 1, 4), 0.0),
+    ]
+
+    result = run_backtest(bars, signals, transaction_cost_bps=0.0, slippage_bps=0.0)
+
+    assert result.trades == 2
+    assert result.equity_curve[1].position == pytest.approx(1.0)
+    assert result.equity_curve[3].position == pytest.approx(0.0)
+    assert result.ending_equity == pytest.approx(10_099.009900990099)
+
+
+def test_run_backtest_charges_trading_friction(bars: list[DailyBar]) -> None:
+    signals = [Signal(bar.date, 1.0) for bar in bars[:1]]
+
+    frictionless = run_backtest(bars, signals, transaction_cost_bps=0.0, slippage_bps=0.0)
+    with_costs = run_backtest(bars, signals, transaction_cost_bps=10.0, slippage_bps=5.0)
+
+    assert with_costs.ending_equity < frictionless.ending_equity
