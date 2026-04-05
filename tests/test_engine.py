@@ -39,3 +39,8 @@ def test_run_backtest_charges_trading_friction(bars: list[DailyBar]) -> None:
     with_costs = run_backtest(bars, signals, transaction_cost_bps=10.0, slippage_bps=5.0)
 
     assert with_costs.ending_equity < frictionless.ending_equity
+
+
+def test_run_backtest_rejects_empty_bar_sequences() -> None:
+    with pytest.raises(ValueError, match="bars must not be empty"):
+        run_backtest([], [])
