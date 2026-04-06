@@ -9,6 +9,7 @@ def generate_report(result: BacktestResult) -> str:
     return "\n".join(
         [
             "Backtest Report",
+            f"Symbols: {result.symbol_count}",
             f"Ending equity: {result.ending_equity:.2f}",
             f"Total return: {metrics['total_return']:.2%}",
             f"Annualized volatility: {metrics['annualized_volatility']:.2%}",

@@ -21,6 +21,23 @@ def _write_dataset(path: Path) -> None:
     )
 
 
+def _write_market_data_toolkit_dataset(path: Path) -> None:
+    path.write_text(
+        "\n".join(
+            [
+                "symbol,timestamp,open,high,low,close,volume",
+                "AAPL,2025-01-02T00:00:00,99,101,98,100,1000",
+                "AAPL,2025-01-03T00:00:00,100,102,99,101,1000",
+                "AAPL,2025-01-04T00:00:00,101,104,100,103,1000",
+                "MSFT,2025-01-02T00:00:00,199,201,198,200,1000",
+                "MSFT,2025-01-03T00:00:00,200,203,199,202,1000",
+                "MSFT,2025-01-04T00:00:00,202,204,201,203,1000",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_cli_runs_backtest_and_prints_report(tmp_path: Path) -> None:
     source = tmp_path / "prices.csv"
     _write_dataset(source)
@@ -45,3 +62,31 @@ def test_cli_runs_backtest_and_prints_report(tmp_path: Path) -> None:
 
     assert "Backtest Report" in result.stdout
     assert "Ending equity" in result.stdout
+
+
+def test_cli_runs_on_market_data_toolkit_exports(tmp_path: Path) -> None:
+    source = tmp_path / "normalized.csv"
+    _write_market_data_toolkit_dataset(source)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "backtest_lab.cli",
+            str(source),
+            "--input-format",
+            "market-data-toolkit",
+            "--strategy",
+            "moving-average",
+            "--short-window",
+            "2",
+            "--long-window",
+            "3",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Backtest Report" in result.stdout
+    assert "Symbols: 2" in result.stdout

@@ -18,6 +18,7 @@ class DailyBar:
 @dataclass(frozen=True, slots=True)
 class Signal:
     date: date
+    symbol: str
     target_weight: float
 
 
@@ -35,3 +36,4 @@ class BacktestResult:
     total_return: float
     ending_equity: float
     trades: int
+    symbol_count: int = 1

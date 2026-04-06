@@ -17,7 +17,9 @@ def run_backtest(
     if not bars:
         raise ValueError("bars must not be empty")
 
-    signal_map = _build_signal_map(signals)
+    symbol = bars[0].symbol
+    symbol_signals = [signal for signal in signals if signal.symbol == symbol]
+    signal_map = _build_signal_map(symbol_signals)
     ordered_bars = sorted(bars, key=lambda bar: bar.date)
 
     equity = initial_cash
@@ -61,8 +63,93 @@ def run_backtest(
         total_return=total_return,
         ending_equity=equity,
         trades=trades,
+        symbol_count=1,
+    )
+
+
+def run_portfolio_backtest(
+    bars: list[DailyBar],
+    signals: list[Signal],
+    *,
+    initial_cash: float = 10_000.0,
+    transaction_cost_bps: float = 5.0,
+    slippage_bps: float = 1.0,
+) -> BacktestResult:
+    if not bars:
+        raise ValueError("bars must not be empty")
+
+    bars_by_symbol = _group_bars_by_symbol(bars)
+    symbols = sorted(bars_by_symbol)
+    per_symbol_cash = initial_cash / len(symbols)
+    symbol_results = {
+        symbol: run_backtest(
+            symbol_bars,
+            signals,
+            initial_cash=per_symbol_cash,
+            transaction_cost_bps=transaction_cost_bps,
+            slippage_bps=slippage_bps,
+        )
+        for symbol, symbol_bars in bars_by_symbol.items()
+    }
+
+    combined_curve = _combine_equity_curves(symbol_results)
+    total_return = (combined_curve[-1].equity / initial_cash) - 1.0
+    trades = sum(result.trades for result in symbol_results.values())
+    return BacktestResult(
+        equity_curve=combined_curve,
+        total_return=total_return,
+        ending_equity=combined_curve[-1].equity,
+        trades=trades,
+        symbol_count=len(symbols),
     )
 
 
 def _build_signal_map(signals: list[Signal]) -> dict[date, float]:
     return {signal.date: signal.target_weight for signal in signals}
+
+
+def _group_bars_by_symbol(bars: list[DailyBar]) -> dict[str, list[DailyBar]]:
+    grouped: dict[str, list[DailyBar]] = {}
+    for bar in bars:
+        grouped.setdefault(bar.symbol, []).append(bar)
+    return grouped
+
+
+def _combine_equity_curves(symbol_results: dict[str, BacktestResult]) -> list[EquityPoint]:
+    calendar = sorted(
+        {
+            point.date
+            for result in symbol_results.values()
+            for point in result.equity_curve
+        }
+    )
+    latest_points = {
+        symbol: result.equity_curve[0]
+        for symbol, result in symbol_results.items()
+    }
+    result_indices = {symbol: 0 for symbol in symbol_results}
+    combined_curve: list[EquityPoint] = []
+
+    for current_date in calendar:
+        for symbol, result in symbol_results.items():
+            next_index = result_indices[symbol] + 1
+            while (
+                next_index < len(result.equity_curve)
+                and result.equity_curve[next_index].date <= current_date
+            ):
+                latest_points[symbol] = result.equity_curve[next_index]
+                result_indices[symbol] = next_index
+                next_index += 1
+
+        combined_curve.append(
+            EquityPoint(
+                date=current_date,
+                equity=sum(point.equity for point in latest_points.values()),
+                position=sum(point.position for point in latest_points.values())
+                / len(latest_points),
+                turnover=sum(point.turnover for point in latest_points.values())
+                / len(latest_points),
+            )
+        )
+
+    return combined_curve

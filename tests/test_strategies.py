@@ -18,6 +18,7 @@ def test_moving_average_cross_strategy_waits_for_long_window() -> None:
 
     signals = strategy.generate_signals(_bars([100, 101, 105, 106]))
 
+    assert [signal.symbol for signal in signals] == ["AAPL", "AAPL", "AAPL", "AAPL"]
     assert [signal.target_weight for signal in signals] == [0.0, 0.0, 1.0, 1.0]
 
 
@@ -28,3 +29,15 @@ def test_mean_reversion_strategy_flags_large_dips() -> None:
 
     assert [signal.target_weight for signal in signals] == [0.0, 0.0, 1.0, 0.0]
 
+
+def test_strategies_handle_multiple_symbols_independently() -> None:
+    strategy = MovingAverageCrossStrategy(short_window=2, long_window=3)
+    bars = _bars([100, 101, 105]) + [
+        DailyBar(date(2025, 1, 2), "MSFT", 49, 51, 48, 50, 1_000),
+        DailyBar(date(2025, 1, 3), "MSFT", 50, 51, 49, 50, 1_000),
+        DailyBar(date(2025, 1, 4), "MSFT", 50, 51, 49, 49, 1_000),
+    ]
+
+    signals = strategy.generate_signals(bars)
+
+    assert [signal.symbol for signal in signals] == ["AAPL", "AAPL", "AAPL", "MSFT", "MSFT", "MSFT"]

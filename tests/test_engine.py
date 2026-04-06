@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from backtest_lab.engine import run_backtest
+from backtest_lab.engine import run_backtest, run_portfolio_backtest
 from backtest_lab.models import DailyBar, Signal
 
 
@@ -19,8 +19,8 @@ def bars() -> list[DailyBar]:
 
 def test_run_backtest_applies_previous_day_signal(bars: list[DailyBar]) -> None:
     signals = [
-        Signal(date(2025, 1, 2), 1.0),
-        Signal(date(2025, 1, 4), 0.0),
+        Signal(date(2025, 1, 2), "AAPL", 1.0),
+        Signal(date(2025, 1, 4), "AAPL", 0.0),
     ]
 
     result = run_backtest(bars, signals, transaction_cost_bps=0.0, slippage_bps=0.0)
@@ -33,7 +33,7 @@ def test_run_backtest_applies_previous_day_signal(bars: list[DailyBar]) -> None:
 
 
 def test_run_backtest_charges_trading_friction(bars: list[DailyBar]) -> None:
-    signals = [Signal(bar.date, 1.0) for bar in bars[:1]]
+    signals = [Signal(bar.date, bar.symbol, 1.0) for bar in bars[:1]]
 
     frictionless = run_backtest(bars, signals, transaction_cost_bps=0.0, slippage_bps=0.0)
     with_costs = run_backtest(bars, signals, transaction_cost_bps=10.0, slippage_bps=5.0)
@@ -44,3 +44,27 @@ def test_run_backtest_charges_trading_friction(bars: list[DailyBar]) -> None:
 def test_run_backtest_rejects_empty_bar_sequences() -> None:
     with pytest.raises(ValueError, match="bars must not be empty"):
         run_backtest([], [])
+
+
+def test_run_portfolio_backtest_combines_symbol_equity_curves() -> None:
+    portfolio_bars = [
+        DailyBar(date(2025, 1, 2), "AAPL", 99, 101, 98, 100, 1_000),
+        DailyBar(date(2025, 1, 3), "AAPL", 100, 103, 99, 102, 1_000),
+        DailyBar(date(2025, 1, 2), "MSFT", 199, 201, 198, 200, 1_000),
+        DailyBar(date(2025, 1, 3), "MSFT", 200, 202, 199, 201, 1_000),
+    ]
+    signals = [
+        Signal(date(2025, 1, 2), "AAPL", 1.0),
+        Signal(date(2025, 1, 2), "MSFT", 1.0),
+    ]
+
+    result = run_portfolio_backtest(
+        portfolio_bars,
+        signals,
+        transaction_cost_bps=0.0,
+        slippage_bps=0.0,
+    )
+
+    assert result.symbol_count == 2
+    assert result.trades == 2
+    assert result.ending_equity == pytest.approx(10_125.0)

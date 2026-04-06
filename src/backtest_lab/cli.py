@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from backtest_lab.data import load_bars_from_csv
-from backtest_lab.engine import run_backtest
+from backtest_lab.data import load_bars_from_csv, load_bars_from_market_data_csv
+from backtest_lab.engine import run_portfolio_backtest
+from backtest_lab.models import DailyBar
 from backtest_lab.reporting import generate_report
 from backtest_lab.strategies import MeanReversionStrategy, MovingAverageCrossStrategy, Strategy
 
@@ -12,6 +13,11 @@ from backtest_lab.strategies import MeanReversionStrategy, MovingAverageCrossStr
 def main() -> None:
     parser = argparse.ArgumentParser(prog="btlab", description="Run simple strategy backtests")
     parser.add_argument("source", type=Path, help="CSV file containing daily OHLCV data")
+    parser.add_argument(
+        "--input-format",
+        choices=("daily-csv", "market-data-toolkit"),
+        default="daily-csv",
+    )
     parser.add_argument(
         "--strategy",
         choices=("moving-average", "mean-reversion"),
@@ -23,7 +29,7 @@ def main() -> None:
     parser.add_argument("--threshold", type=float, default=0.02)
     args = parser.parse_args()
 
-    bars = load_bars_from_csv(args.source)
+    bars = _load_bars(args.source, args.input_format)
     strategy = _build_strategy(
         args.strategy,
         args.short_window,
@@ -31,8 +37,14 @@ def main() -> None:
         args.lookback,
         args.threshold,
     )
-    result = run_backtest(bars, strategy.generate_signals(bars))
+    result = run_portfolio_backtest(bars, strategy.generate_signals(bars))
     print(generate_report(result))
+
+
+def _load_bars(source: Path, input_format: str) -> list[DailyBar]:
+    if input_format == "market-data-toolkit":
+        return load_bars_from_market_data_csv(source)
+    return load_bars_from_csv(source)
 
 
 def _build_strategy(
