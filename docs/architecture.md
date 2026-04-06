@@ -9,6 +9,7 @@
 ## Components
 
 - `data.py`: parses daily OHLCV CSV inputs
+- `data.py`: parses both native daily CSVs and normalized `market-data-toolkit` exports
 - `strategies.py`: produces target-weight signals from price history
 - `engine.py`: applies signals to a daily equity curve
 - `portfolio.py`: houses trading-friction helpers
@@ -33,3 +34,9 @@ when the target position changes, scaled by turnover.
 
 This repo is intentionally small. The focus is correctness, signal alignment, and clear APIs,
 not production-grade brokerage modeling.
+
+## Multi-asset behavior
+
+The portfolio path groups bars by symbol, runs the single-name execution logic per symbol, and
+then combines the resulting equity curves into an equal-weight portfolio result. That keeps the
+execution semantics simple while still allowing cross-symbol strategy evaluation from one dataset.
