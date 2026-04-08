@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
+from backtest_lab.metrics import compute_win_loss_summary
 from backtest_lab.models import BacktestResult, DailyBar, EquityPoint, Signal, SymbolSummary
 from backtest_lab.portfolio import trading_cost
 
@@ -201,6 +202,7 @@ def _build_symbol_summaries(
     summaries: list[SymbolSummary] = []
     for symbol in sorted(symbol_results):
         result = symbol_results[symbol]
+        win_loss = compute_win_loss_summary(result)
         starting_equity = initial_cash * resolved_weights[symbol]
         average_capital_turnover = sum(point.turnover for point in result.equity_curve[1:]) / max(
             len(result.equity_curve) - 1,
@@ -214,6 +216,10 @@ def _build_symbol_summaries(
                 total_return=result.total_return,
                 contribution=(result.ending_equity - starting_equity) / initial_cash,
                 weight=resolved_weights[symbol],
+                hit_rate=win_loss["hit_rate"],
+                winning_periods=int(win_loss["winning_periods"]),
+                losing_periods=int(win_loss["losing_periods"]),
+                flat_periods=int(win_loss["flat_periods"]),
                 average_raw_signal_turnover=result.average_raw_signal_turnover,
                 average_capital_turnover=average_capital_turnover,
                 trades=result.trades,

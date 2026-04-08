@@ -55,6 +55,10 @@ def _format_symbol_summary(summary: SymbolSummary) -> str:
         f"- {summary.symbol}: weight {summary.weight:.2%}, "
         f"return {summary.total_return:.2%}, "
         f"contribution {summary.contribution:.2%}, "
+        f"hit rate {summary.hit_rate:.2%}, "
+        f"wins {summary.winning_periods}, "
+        f"losses {summary.losing_periods}, "
+        f"flats {summary.flat_periods}, "
         f"avg raw turnover {summary.average_raw_signal_turnover:.2%}, "
         f"avg capital turnover {summary.average_capital_turnover:.2%}, "
         f"trades {summary.trades}"
@@ -124,6 +128,10 @@ def _symbol_summary_rows(summaries: list[SymbolSummary]) -> list[dict[str, str]]
                 {"scope": scope, "name": "weight", "value": f"{summary.weight:.6f}"},
                 {"scope": scope, "name": "total_return", "value": f"{summary.total_return:.6f}"},
                 {"scope": scope, "name": "contribution", "value": f"{summary.contribution:.6f}"},
+                {"scope": scope, "name": "hit_rate", "value": f"{summary.hit_rate:.6f}"},
+                {"scope": scope, "name": "winning_periods", "value": str(summary.winning_periods)},
+                {"scope": scope, "name": "losing_periods", "value": str(summary.losing_periods)},
+                {"scope": scope, "name": "flat_periods", "value": str(summary.flat_periods)},
                 {
                     "scope": scope,
                     "name": "average_raw_signal_turnover",

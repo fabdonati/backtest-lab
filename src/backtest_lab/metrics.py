@@ -116,3 +116,7 @@ def _win_loss_summary(result: BacktestResult) -> dict[str, float]:
         "losing_periods": float(losing_periods),
         "flat_periods": float(flat_periods),
     }
+
+
+def compute_win_loss_summary(result: BacktestResult) -> dict[str, float]:
+    return _win_loss_summary(result)

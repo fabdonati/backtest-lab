@@ -2,8 +2,8 @@
 
 ## Near Term
 
-- Add per-symbol hit rate alongside the existing symbol summary
 - Add report export formats beyond CSV if the workflow expands
+- Add a compact equity-curve export for downstream plotting
 
 ## Later
 

@@ -54,6 +54,7 @@ def test_generate_report_includes_symbol_summary_for_portfolios() -> None:
     assert "Symbol summary:" in report
     assert "- AAPL: weight 75.00%" in report
     assert "contribution 1.50%" in report
+    assert "hit rate 0.00%" in report
     assert "avg raw turnover 100.00%" in report
     assert "avg capital turnover 75.00%" in report
 

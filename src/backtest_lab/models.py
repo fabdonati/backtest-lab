@@ -38,6 +38,10 @@ class SymbolSummary:
     total_return: float
     contribution: float
     weight: float
+    hit_rate: float
+    winning_periods: int
+    losing_periods: int
+    flat_periods: int
     average_raw_signal_turnover: float
     average_capital_turnover: float
     trades: int

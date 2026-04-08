@@ -50,4 +50,6 @@ contribution, raw signal turnover, and capital turnover so the portfolio summary
 inspect without opening the underlying CSV inputs. Turnover is expressed in capital terms, so
 larger symbol allocations contribute more to the reported turnover when they rebalance, while raw
 signal turnover remains useful for debugging how often a strategy actually flips its target weights.
+Portfolio reports also include per-symbol win/loss breakdowns derived from each sleeve's own
+realized return path.
 The CLI can also export these same diagnostics to a simple CSV file for downstream analysis.

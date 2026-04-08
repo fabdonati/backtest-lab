@@ -173,3 +173,4 @@ def test_cli_writes_metrics_csv(tmp_path: Path) -> None:
     assert "scope,name,value" in metrics_csv
     assert "portfolio,weighting_mode,custom" in metrics_csv
     assert "symbol:AAPL,weight,0.750000" in metrics_csv
+    assert "symbol:AAPL,hit_rate,0.000000" in metrics_csv
