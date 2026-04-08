@@ -31,6 +31,18 @@ class EquityPoint:
 
 
 @dataclass(frozen=True, slots=True)
+class SymbolSummary:
+    symbol: str
+    starting_equity: float
+    ending_equity: float
+    total_return: float
+    contribution: float
+    weight: float
+    average_capital_turnover: float
+    trades: int
+
+
+@dataclass(frozen=True, slots=True)
 class BacktestResult:
     equity_curve: list[EquityPoint]
     total_return: float
@@ -38,3 +50,4 @@ class BacktestResult:
     trades: int
     symbol_count: int = 1
     weighting_mode: str = "equal-weight"
+    symbol_summaries: list[SymbolSummary] | None = None

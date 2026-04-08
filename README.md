@@ -19,7 +19,7 @@ transaction-cost handling, metrics, and CLI execution.
   - mean reversion
 - Equal-weight multi-asset portfolio backtesting
 - Optional custom portfolio weights via CSV
-- Metrics and text report generation
+- Metrics and text report generation with per-symbol contribution and capital-turnover summaries
 - CLI entrypoint for running local datasets
 
 ## Install
@@ -108,6 +108,25 @@ python -m backtest_lab.cli data/portfolio.csv \
 ```
 
 You should now see a non-zero trade count and equity that moves away from the initial cash balance.
+
+## End-to-end example with `market-data-toolkit`
+
+The repo now includes a small ready-to-run example under
+[`examples/market_data_toolkit`](/Users/fabrizio/Dev/Finance/backtest-lab/examples/market_data_toolkit/README.md).
+
+From the repo root:
+
+```bash
+python -m backtest_lab.cli examples/market_data_toolkit/normalized.csv \
+  --input-format market-data-toolkit \
+  --strategy moving-average \
+  --short-window 2 \
+  --long-window 3 \
+  --weights-file examples/market_data_toolkit/weights.csv
+```
+
+That example uses the same normalized column layout produced by `market-data-toolkit`,
+so it mirrors the real workflow without requiring a live data fetch each time.
 
 ## Package usage
 

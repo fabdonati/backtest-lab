@@ -69,6 +69,9 @@ def test_run_portfolio_backtest_combines_symbol_equity_curves() -> None:
     assert result.trades == 2
     assert result.ending_equity == pytest.approx(10_125.0)
     assert result.weighting_mode == "equal-weight"
+    assert result.symbol_summaries is not None
+    assert [summary.symbol for summary in result.symbol_summaries] == ["AAPL", "MSFT"]
+    assert result.equity_curve[1].turnover == pytest.approx(1.0)
 
 
 def test_run_portfolio_backtest_respects_custom_weights() -> None:
@@ -93,6 +96,16 @@ def test_run_portfolio_backtest_respects_custom_weights() -> None:
 
     assert result.weighting_mode == "custom"
     assert result.ending_equity == pytest.approx(10_162.5)
+    assert result.symbol_summaries is not None
+    assert result.symbol_summaries[0].symbol == "AAPL"
+    assert result.symbol_summaries[0].weight == pytest.approx(0.75)
+    assert result.symbol_summaries[0].contribution == pytest.approx(0.015)
+    assert result.symbol_summaries[0].average_capital_turnover == pytest.approx(0.75)
+    assert result.symbol_summaries[1].symbol == "MSFT"
+    assert result.symbol_summaries[1].weight == pytest.approx(0.25)
+    assert result.symbol_summaries[1].contribution == pytest.approx(0.00125)
+    assert result.symbol_summaries[1].average_capital_turnover == pytest.approx(0.25)
+    assert result.equity_curve[1].turnover == pytest.approx(1.0)
 
 
 def test_run_portfolio_backtest_rejects_missing_weight_symbols() -> None:
