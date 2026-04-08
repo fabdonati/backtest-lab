@@ -134,3 +134,42 @@ def test_cli_accepts_custom_weights_file(tmp_path: Path) -> None:
     )
 
     assert "Weighting: custom" in result.stdout
+
+
+def test_cli_writes_metrics_csv(tmp_path: Path) -> None:
+    source = tmp_path / "normalized.csv"
+    weights = tmp_path / "weights.csv"
+    metrics_output = tmp_path / "metrics" / "report.csv"
+    _write_market_data_toolkit_dataset(source)
+    _write_weights_file(weights)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "backtest_lab.cli",
+            str(source),
+            "--input-format",
+            "market-data-toolkit",
+            "--strategy",
+            "moving-average",
+            "--short-window",
+            "2",
+            "--long-window",
+            "3",
+            "--weights-file",
+            str(weights),
+            "--metrics-output",
+            str(metrics_output),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Backtest Report" in result.stdout
+    assert metrics_output.exists()
+    metrics_csv = metrics_output.read_text(encoding="utf-8")
+    assert "scope,name,value" in metrics_csv
+    assert "portfolio,weighting_mode,custom" in metrics_csv
+    assert "symbol:AAPL,weight,0.750000" in metrics_csv

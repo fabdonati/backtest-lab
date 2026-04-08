@@ -19,7 +19,7 @@ transaction-cost handling, metrics, and CLI execution.
   - mean reversion
 - Equal-weight multi-asset portfolio backtesting
 - Optional custom portfolio weights via CSV
-- Metrics and text report generation with exposure, drawdown, per-symbol contribution, raw signal turnover, and capital-turnover summaries
+- Metrics and text report generation with exposure, drawdown, hit-rate, per-symbol contribution, raw signal turnover, and capital-turnover summaries
 - CLI entrypoint for running local datasets
 
 ## Install
@@ -63,6 +63,16 @@ If you prefer not to rely on the installed CLI entrypoint, you can run the modul
 
 ```bash
 python -m backtest_lab.cli data/normalized.csv --input-format market-data-toolkit --strategy moving-average --weights-file data/weights.csv
+```
+
+Write the same portfolio metrics to a CSV file for later inspection:
+
+```bash
+python -m backtest_lab.cli data/normalized.csv \
+  --input-format market-data-toolkit \
+  --strategy moving-average \
+  --weights-file data/weights.csv \
+  --metrics-output data/report_metrics.csv
 ```
 
 Run a mean-reversion backtest:

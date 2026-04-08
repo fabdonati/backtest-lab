@@ -24,6 +24,7 @@ def test_generate_report_includes_key_metrics() -> None:
     assert "Sharpe ratio" in report
     assert "Average exposure" in report
     assert "Max drawdown duration" in report
+    assert "Hit rate" in report
     assert "Average raw signal turnover" in report
 
 
@@ -75,3 +76,25 @@ def test_generate_report_includes_exposure_and_drawdown_diagnostics() -> None:
     assert "Average exposure: 100.00%" in report
     assert "Max exposure: 100.00%" in report
     assert "Max drawdown duration: 2 bars" in report
+
+
+def test_generate_report_includes_hit_rate_and_win_loss_counts() -> None:
+    bars = [
+        DailyBar(date(2025, 1, 2), "AAPL", 99, 101, 98, 100, 1_000),
+        DailyBar(date(2025, 1, 3), "AAPL", 100, 103, 99, 102, 1_000),
+        DailyBar(date(2025, 1, 4), "AAPL", 102, 103, 98, 99, 1_000),
+        DailyBar(date(2025, 1, 5), "AAPL", 99, 101, 98, 99, 1_000),
+    ]
+    result = run_backtest(
+        bars,
+        [Signal(date(2025, 1, 2), "AAPL", 1.0)],
+        transaction_cost_bps=0.0,
+        slippage_bps=0.0,
+    )
+
+    report = generate_report(result)
+
+    assert "Hit rate: 0.00%" in report
+    assert "Winning periods: 0" in report
+    assert "Losing periods: 1" in report
+    assert "Flat periods: 1" in report

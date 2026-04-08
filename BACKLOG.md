@@ -2,8 +2,8 @@
 
 ## Near Term
 
-- Add portfolio-level hit rate and win/loss summaries
-- Add simple CSV export for the generated report metrics
+- Add per-symbol hit rate alongside the existing symbol summary
+- Add report export formats beyond CSV if the workflow expands
 
 ## Later
 

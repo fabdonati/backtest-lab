@@ -45,8 +45,9 @@ The portfolio path groups bars by symbol, runs the single-name execution logic p
 then combines the resulting equity curves into a portfolio result. By default this is equal-weight,
 but the CLI can also load explicit fixed symbol weights from a small CSV file. That keeps the
 execution semantics simple while still allowing cross-symbol strategy evaluation from one dataset.
-The reporting layer surfaces exposure, drawdown duration, per-symbol return contribution, raw
-signal turnover, and capital turnover so the portfolio summary is easier to inspect without opening
-the underlying CSV inputs. Turnover is expressed in capital terms, so larger symbol allocations
-contribute more to the reported turnover when they rebalance, while raw signal turnover remains
-useful for debugging how often a strategy actually flips its target weights.
+The reporting layer surfaces exposure, drawdown duration, hit rate, per-symbol return
+contribution, raw signal turnover, and capital turnover so the portfolio summary is easier to
+inspect without opening the underlying CSV inputs. Turnover is expressed in capital terms, so
+larger symbol allocations contribute more to the reported turnover when they rebalance, while raw
+signal turnover remains useful for debugging how often a strategy actually flips its target weights.
+The CLI can also export these same diagnostics to a simple CSV file for downstream analysis.

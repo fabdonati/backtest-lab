@@ -10,7 +10,7 @@ from backtest_lab.data import (
 )
 from backtest_lab.engine import run_portfolio_backtest
 from backtest_lab.models import DailyBar
-from backtest_lab.reporting import generate_report
+from backtest_lab.reporting import generate_report, write_metrics_csv
 from backtest_lab.strategies import MeanReversionStrategy, MovingAverageCrossStrategy, Strategy
 
 
@@ -32,6 +32,7 @@ def main() -> None:
     parser.add_argument("--lookback", type=int, default=3)
     parser.add_argument("--threshold", type=float, default=0.02)
     parser.add_argument("--weights-file", type=Path)
+    parser.add_argument("--metrics-output", type=Path)
     args = parser.parse_args()
 
     bars = _load_bars(args.source, args.input_format)
@@ -48,6 +49,8 @@ def main() -> None:
         strategy.generate_signals(bars),
         symbol_weights=weights,
     )
+    if args.metrics_output is not None:
+        write_metrics_csv(result, args.metrics_output)
     print(generate_report(result))
 
 

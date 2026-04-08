@@ -7,6 +7,8 @@ Files:
 
 - `normalized.csv`: daily bars for `AAPL` and `MSFT`
 - `weights.csv`: fixed symbol weights for a two-name portfolio
+- `diagnostics_normalized.csv`: longer daily bars chosen to exercise exposure and hit-rate metrics
+- `diagnostics_weights.csv`: fixed weights for the diagnostics example
 
 Run it from the repo root:
 
@@ -24,3 +26,21 @@ You should see:
 - a non-zero trade count
 - average capital turnover
 - one summary line per symbol
+
+For a longer diagnostics-focused sample, run:
+
+```bash
+python -m backtest_lab.cli examples/market_data_toolkit/diagnostics_normalized.csv \
+  --input-format market-data-toolkit \
+  --strategy moving-average \
+  --short-window 2 \
+  --long-window 3 \
+  --weights-file examples/market_data_toolkit/diagnostics_weights.csv
+```
+
+That example is designed so the report shows:
+
+- non-zero hit rate
+- non-zero winning and losing periods
+- non-zero drawdown duration
+- non-zero raw and capital turnover

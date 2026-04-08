@@ -8,6 +8,7 @@ from backtest_lab.models import BacktestResult
 
 def compute_metrics(result: BacktestResult) -> dict[str, float]:
     returns = _daily_returns(result)
+    win_loss = _win_loss_summary(result)
     if not returns:
         return {
             "total_return": result.total_return,
@@ -17,6 +18,10 @@ def compute_metrics(result: BacktestResult) -> dict[str, float]:
             "average_exposure": _average_exposure(result),
             "max_exposure": _max_exposure(result),
             "max_drawdown_duration": 0.0,
+            "hit_rate": win_loss["hit_rate"],
+            "winning_periods": win_loss["winning_periods"],
+            "losing_periods": win_loss["losing_periods"],
+            "flat_periods": win_loss["flat_periods"],
         }
 
     mean_return = fmean(returns)
@@ -32,6 +37,10 @@ def compute_metrics(result: BacktestResult) -> dict[str, float]:
         "average_exposure": _average_exposure(result),
         "max_exposure": _max_exposure(result),
         "max_drawdown_duration": float(_max_drawdown_duration(result)),
+        "hit_rate": win_loss["hit_rate"],
+        "winning_periods": win_loss["winning_periods"],
+        "losing_periods": win_loss["losing_periods"],
+        "flat_periods": win_loss["flat_periods"],
     }
 
 
@@ -76,3 +85,34 @@ def _max_drawdown_duration(result: BacktestResult) -> int:
             current_duration += 1
             max_duration = max(max_duration, current_duration)
     return max_duration
+
+
+def _win_loss_summary(result: BacktestResult) -> dict[str, float]:
+    winning_periods = 0
+    losing_periods = 0
+    flat_periods = 0
+
+    for previous_point, current_point in zip(
+        result.equity_curve,
+        result.equity_curve[1:],
+        strict=False,
+    ):
+        if previous_point.position == 0.0:
+            continue
+
+        period_return = (current_point.equity / previous_point.equity) - 1.0
+        if period_return > 0:
+            winning_periods += 1
+        elif period_return < 0:
+            losing_periods += 1
+        else:
+            flat_periods += 1
+
+    active_periods = winning_periods + losing_periods + flat_periods
+    hit_rate = 0.0 if active_periods == 0 else winning_periods / active_periods
+    return {
+        "hit_rate": hit_rate,
+        "winning_periods": float(winning_periods),
+        "losing_periods": float(losing_periods),
+        "flat_periods": float(flat_periods),
+    }
