@@ -19,5 +19,6 @@ def test_generate_report_includes_key_metrics() -> None:
 
     assert "Backtest Report" in report
     assert "Symbols: 1" in report
+    assert "Weighting: equal-weight" in report
     assert "Ending equity" in report
     assert "Sharpe ratio" in report

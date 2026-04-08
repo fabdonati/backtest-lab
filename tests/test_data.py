@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from backtest_lab.data import load_bars_from_csv, load_bars_from_market_data_csv
+import pytest
+
+from backtest_lab.data import (
+    load_bars_from_csv,
+    load_bars_from_market_data_csv,
+    load_symbol_weights,
+)
 
 
 def test_load_bars_from_csv_parses_daily_rows(tmp_path: Path) -> None:
@@ -40,3 +46,38 @@ def test_load_bars_from_market_data_csv_converts_timestamp_to_date(tmp_path: Pat
 
     assert len(bars) == 1
     assert bars[0].date.isoformat() == "2025-01-02"
+
+
+def test_load_symbol_weights_reads_valid_allocations(tmp_path: Path) -> None:
+    source = tmp_path / "weights.csv"
+    source.write_text(
+        "\n".join(
+            [
+                "symbol,weight",
+                "AAPL,0.6",
+                "MSFT,0.4",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    weights = load_symbol_weights(source)
+
+    assert weights == {"AAPL": 0.6, "MSFT": 0.4}
+
+
+def test_load_symbol_weights_rejects_invalid_sums(tmp_path: Path) -> None:
+    source = tmp_path / "weights.csv"
+    source.write_text(
+        "\n".join(
+            [
+                "symbol,weight",
+                "AAPL,0.7",
+                "MSFT,0.4",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="sum to 1.0"):
+        load_symbol_weights(source)

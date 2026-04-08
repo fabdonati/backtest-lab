@@ -37,3 +37,4 @@ class BacktestResult:
     ending_equity: float
     trades: int
     symbol_count: int = 1
+    weighting_mode: str = "equal-weight"

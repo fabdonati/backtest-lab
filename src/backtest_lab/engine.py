@@ -74,18 +74,19 @@ def run_portfolio_backtest(
     initial_cash: float = 10_000.0,
     transaction_cost_bps: float = 5.0,
     slippage_bps: float = 1.0,
+    symbol_weights: dict[str, float] | None = None,
 ) -> BacktestResult:
     if not bars:
         raise ValueError("bars must not be empty")
 
     bars_by_symbol = _group_bars_by_symbol(bars)
     symbols = sorted(bars_by_symbol)
-    per_symbol_cash = initial_cash / len(symbols)
+    resolved_weights = _resolve_symbol_weights(symbols, symbol_weights)
     symbol_results = {
         symbol: run_backtest(
             symbol_bars,
             signals,
-            initial_cash=per_symbol_cash,
+            initial_cash=initial_cash * resolved_weights[symbol],
             transaction_cost_bps=transaction_cost_bps,
             slippage_bps=slippage_bps,
         )
@@ -101,6 +102,7 @@ def run_portfolio_backtest(
         ending_equity=combined_curve[-1].equity,
         trades=trades,
         symbol_count=len(symbols),
+        weighting_mode="custom" if symbol_weights is not None else "equal-weight",
     )
 
 
@@ -113,6 +115,23 @@ def _group_bars_by_symbol(bars: list[DailyBar]) -> dict[str, list[DailyBar]]:
     for bar in bars:
         grouped.setdefault(bar.symbol, []).append(bar)
     return grouped
+
+
+def _resolve_symbol_weights(
+    symbols: list[str],
+    symbol_weights: dict[str, float] | None,
+) -> dict[str, float]:
+    if symbol_weights is None:
+        equal_weight = 1.0 / len(symbols)
+        return {symbol: equal_weight for symbol in symbols}
+
+    missing = [symbol for symbol in symbols if symbol not in symbol_weights]
+    extras = [symbol for symbol in symbol_weights if symbol not in symbols]
+    if missing:
+        raise ValueError(f"Weight file is missing symbols: {', '.join(missing)}")
+    if extras:
+        raise ValueError(f"Weight file contains unknown symbols: {', '.join(sorted(extras))}")
+    return {symbol: symbol_weights[symbol] for symbol in symbols}
 
 
 def _combine_equity_curves(symbol_results: dict[str, BacktestResult]) -> list[EquityPoint]:

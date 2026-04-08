@@ -10,6 +10,7 @@ def generate_report(result: BacktestResult) -> str:
         [
             "Backtest Report",
             f"Symbols: {result.symbol_count}",
+            f"Weighting: {result.weighting_mode}",
             f"Ending equity: {result.ending_equity:.2f}",
             f"Total return: {metrics['total_return']:.2%}",
             f"Annualized volatility: {metrics['annualized_volatility']:.2%}",

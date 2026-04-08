@@ -38,6 +38,19 @@ def _write_market_data_toolkit_dataset(path: Path) -> None:
     )
 
 
+def _write_weights_file(path: Path) -> None:
+    path.write_text(
+        "\n".join(
+            [
+                "symbol,weight",
+                "AAPL,0.75",
+                "MSFT,0.25",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_cli_runs_backtest_and_prints_report(tmp_path: Path) -> None:
     source = tmp_path / "prices.csv"
     _write_dataset(source)
@@ -90,3 +103,34 @@ def test_cli_runs_on_market_data_toolkit_exports(tmp_path: Path) -> None:
 
     assert "Backtest Report" in result.stdout
     assert "Symbols: 2" in result.stdout
+
+
+def test_cli_accepts_custom_weights_file(tmp_path: Path) -> None:
+    source = tmp_path / "normalized.csv"
+    weights = tmp_path / "weights.csv"
+    _write_market_data_toolkit_dataset(source)
+    _write_weights_file(weights)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "backtest_lab.cli",
+            str(source),
+            "--input-format",
+            "market-data-toolkit",
+            "--strategy",
+            "moving-average",
+            "--short-window",
+            "2",
+            "--long-window",
+            "3",
+            "--weights-file",
+            str(weights),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Weighting: custom" in result.stdout
