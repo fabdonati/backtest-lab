@@ -35,10 +35,12 @@ def run_backtest(
         )
     ]
     trades = 0
+    total_raw_signal_turnover = 0.0
 
     for previous_bar, current_bar in zip(ordered_bars, ordered_bars[1:], strict=False):
         target_position = signal_map.get(previous_bar.date, current_position)
         position_turnover = abs(target_position - current_position)
+        total_raw_signal_turnover += position_turnover
         capital_turnover = position_turnover * (equity / capital_base)
         if position_turnover > 0:
             equity *= 1.0 - trading_cost(
@@ -61,12 +63,14 @@ def run_backtest(
         )
 
     total_return = (equity / initial_cash) - 1.0
+    average_raw_signal_turnover = total_raw_signal_turnover / max(len(ordered_bars) - 1, 1)
     return BacktestResult(
         equity_curve=equity_curve,
         total_return=total_return,
         ending_equity=equity,
         trades=trades,
         symbol_count=1,
+        average_raw_signal_turnover=average_raw_signal_turnover,
     )
 
 
@@ -97,7 +101,7 @@ def run_portfolio_backtest(
         for symbol, symbol_bars in bars_by_symbol.items()
     }
 
-    combined_curve = _combine_equity_curves(symbol_results)
+    combined_curve = _combine_equity_curves(symbol_results, resolved_weights)
     symbol_summaries = _build_symbol_summaries(
         symbol_results,
         resolved_weights,
@@ -112,6 +116,7 @@ def run_portfolio_backtest(
         trades=trades,
         symbol_count=len(symbols),
         weighting_mode="custom" if symbol_weights is not None else "equal-weight",
+        average_raw_signal_turnover=_average_raw_signal_turnover(symbol_results),
         symbol_summaries=symbol_summaries,
     )
 
@@ -144,7 +149,10 @@ def _resolve_symbol_weights(
     return {symbol: symbol_weights[symbol] for symbol in symbols}
 
 
-def _combine_equity_curves(symbol_results: dict[str, BacktestResult]) -> list[EquityPoint]:
+def _combine_equity_curves(
+    symbol_results: dict[str, BacktestResult],
+    resolved_weights: dict[str, float],
+) -> list[EquityPoint]:
     calendar = sorted(
         {
             point.date
@@ -174,8 +182,10 @@ def _combine_equity_curves(symbol_results: dict[str, BacktestResult]) -> list[Eq
             EquityPoint(
                 date=current_date,
                 equity=sum(point.equity for point in latest_points.values()),
-                position=sum(point.position for point in latest_points.values())
-                / len(latest_points),
+                position=sum(
+                    latest_points[symbol].position * resolved_weights[symbol]
+                    for symbol in latest_points
+                ),
                 turnover=sum(point.turnover for point in latest_points.values()),
             )
         )
@@ -204,8 +214,17 @@ def _build_symbol_summaries(
                 total_return=result.total_return,
                 contribution=(result.ending_equity - starting_equity) / initial_cash,
                 weight=resolved_weights[symbol],
+                average_raw_signal_turnover=result.average_raw_signal_turnover,
                 average_capital_turnover=average_capital_turnover,
                 trades=result.trades,
             )
         )
     return summaries
+
+
+def _average_raw_signal_turnover(symbol_results: dict[str, BacktestResult]) -> float:
+    if not symbol_results:
+        return 0.0
+    return sum(result.average_raw_signal_turnover for result in symbol_results.values()) / len(
+        symbol_results
+    )

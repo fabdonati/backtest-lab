@@ -14,8 +14,12 @@ def generate_report(result: BacktestResult) -> str:
         f"Total return: {metrics['total_return']:.2%}",
         f"Annualized volatility: {metrics['annualized_volatility']:.2%}",
         f"Sharpe ratio: {metrics['sharpe_ratio']:.2f}",
+        f"Average exposure: {metrics['average_exposure']:.2%}",
+        f"Max exposure: {metrics['max_exposure']:.2%}",
         f"Max drawdown: {metrics['max_drawdown']:.2%}",
+        f"Max drawdown duration: {int(metrics['max_drawdown_duration'])} bars",
         f"Trades: {result.trades}",
+        f"Average raw signal turnover: {result.average_raw_signal_turnover:.2%}",
         f"Average capital turnover: {_average_turnover(result):.2%}",
     ]
     if result.symbol_summaries:
@@ -35,6 +39,7 @@ def _format_symbol_summary(summary: SymbolSummary) -> str:
         f"- {summary.symbol}: weight {summary.weight:.2%}, "
         f"return {summary.total_return:.2%}, "
         f"contribution {summary.contribution:.2%}, "
+        f"avg raw turnover {summary.average_raw_signal_turnover:.2%}, "
         f"avg capital turnover {summary.average_capital_turnover:.2%}, "
         f"trades {summary.trades}"
     )

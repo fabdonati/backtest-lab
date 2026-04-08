@@ -69,6 +69,8 @@ def test_run_portfolio_backtest_combines_symbol_equity_curves() -> None:
     assert result.trades == 2
     assert result.ending_equity == pytest.approx(10_125.0)
     assert result.weighting_mode == "equal-weight"
+    assert result.average_raw_signal_turnover == pytest.approx(1.0)
+    assert result.equity_curve[1].position == pytest.approx(1.0)
     assert result.symbol_summaries is not None
     assert [summary.symbol for summary in result.symbol_summaries] == ["AAPL", "MSFT"]
     assert result.equity_curve[1].turnover == pytest.approx(1.0)
@@ -96,16 +98,44 @@ def test_run_portfolio_backtest_respects_custom_weights() -> None:
 
     assert result.weighting_mode == "custom"
     assert result.ending_equity == pytest.approx(10_162.5)
+    assert result.average_raw_signal_turnover == pytest.approx(1.0)
     assert result.symbol_summaries is not None
     assert result.symbol_summaries[0].symbol == "AAPL"
     assert result.symbol_summaries[0].weight == pytest.approx(0.75)
     assert result.symbol_summaries[0].contribution == pytest.approx(0.015)
+    assert result.symbol_summaries[0].average_raw_signal_turnover == pytest.approx(1.0)
     assert result.symbol_summaries[0].average_capital_turnover == pytest.approx(0.75)
     assert result.symbol_summaries[1].symbol == "MSFT"
     assert result.symbol_summaries[1].weight == pytest.approx(0.25)
     assert result.symbol_summaries[1].contribution == pytest.approx(0.00125)
+    assert result.symbol_summaries[1].average_raw_signal_turnover == pytest.approx(1.0)
     assert result.symbol_summaries[1].average_capital_turnover == pytest.approx(0.25)
     assert result.equity_curve[1].turnover == pytest.approx(1.0)
+    assert result.equity_curve[1].position == pytest.approx(1.0)
+
+
+def test_run_portfolio_backtest_reports_weighted_exposure() -> None:
+    portfolio_bars = [
+        DailyBar(date(2025, 1, 2), "AAPL", 99, 101, 98, 100, 1_000),
+        DailyBar(date(2025, 1, 3), "AAPL", 100, 103, 99, 102, 1_000),
+        DailyBar(date(2025, 1, 2), "MSFT", 199, 201, 198, 200, 1_000),
+        DailyBar(date(2025, 1, 3), "MSFT", 200, 202, 199, 201, 1_000),
+    ]
+    signals = [
+        Signal(date(2025, 1, 2), "AAPL", 1.0),
+        Signal(date(2025, 1, 2), "MSFT", 0.0),
+    ]
+
+    result = run_portfolio_backtest(
+        portfolio_bars,
+        signals,
+        transaction_cost_bps=0.0,
+        slippage_bps=0.0,
+        symbol_weights={"AAPL": 0.75, "MSFT": 0.25},
+    )
+
+    assert result.equity_curve[1].position == pytest.approx(0.75)
+    assert result.average_raw_signal_turnover == pytest.approx(0.5)
 
 
 def test_run_portfolio_backtest_rejects_missing_weight_symbols() -> None:

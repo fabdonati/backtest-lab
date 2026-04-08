@@ -2,8 +2,8 @@
 
 ## Near Term
 
-- Add richer exposure and drawdown diagnostics to the portfolio report
-- Consider also surfacing raw signal turnover alongside capital turnover for debugging
+- Add portfolio-level hit rate and win/loss summaries
+- Add simple CSV export for the generated report metrics
 
 ## Later
 

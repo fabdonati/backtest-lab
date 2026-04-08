@@ -14,6 +14,9 @@ def compute_metrics(result: BacktestResult) -> dict[str, float]:
             "annualized_volatility": 0.0,
             "sharpe_ratio": 0.0,
             "max_drawdown": 0.0,
+            "average_exposure": _average_exposure(result),
+            "max_exposure": _max_exposure(result),
+            "max_drawdown_duration": 0.0,
         }
 
     mean_return = fmean(returns)
@@ -26,6 +29,9 @@ def compute_metrics(result: BacktestResult) -> dict[str, float]:
         "annualized_volatility": volatility,
         "sharpe_ratio": sharpe,
         "max_drawdown": _max_drawdown(result),
+        "average_exposure": _average_exposure(result),
+        "max_exposure": _max_exposure(result),
+        "max_drawdown_duration": float(_max_drawdown_duration(result)),
     }
 
 
@@ -45,3 +51,28 @@ def _max_drawdown(result: BacktestResult) -> float:
         drawdown = (point.equity / peak) - 1.0
         max_drawdown = min(max_drawdown, drawdown)
     return abs(max_drawdown)
+
+
+def _average_exposure(result: BacktestResult) -> float:
+    if len(result.equity_curve) <= 1:
+        return abs(result.equity_curve[0].position)
+    invested_points = result.equity_curve[1:]
+    return sum(abs(point.position) for point in invested_points) / len(invested_points)
+
+
+def _max_exposure(result: BacktestResult) -> float:
+    return max(abs(point.position) for point in result.equity_curve)
+
+
+def _max_drawdown_duration(result: BacktestResult) -> int:
+    peak = result.equity_curve[0].equity
+    current_duration = 0
+    max_duration = 0
+    for point in result.equity_curve:
+        if point.equity >= peak:
+            peak = point.equity
+            current_duration = 0
+        else:
+            current_duration += 1
+            max_duration = max(max_duration, current_duration)
+    return max_duration

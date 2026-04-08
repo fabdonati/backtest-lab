@@ -19,7 +19,7 @@ transaction-cost handling, metrics, and CLI execution.
   - mean reversion
 - Equal-weight multi-asset portfolio backtesting
 - Optional custom portfolio weights via CSV
-- Metrics and text report generation with per-symbol contribution and capital-turnover summaries
+- Metrics and text report generation with exposure, drawdown, per-symbol contribution, raw signal turnover, and capital-turnover summaries
 - CLI entrypoint for running local datasets
 
 ## Install

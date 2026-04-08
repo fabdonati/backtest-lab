@@ -38,6 +38,7 @@ class SymbolSummary:
     total_return: float
     contribution: float
     weight: float
+    average_raw_signal_turnover: float
     average_capital_turnover: float
     trades: int
 
@@ -50,4 +51,5 @@ class BacktestResult:
     trades: int
     symbol_count: int = 1
     weighting_mode: str = "equal-weight"
+    average_raw_signal_turnover: float = 0.0
     symbol_summaries: list[SymbolSummary] | None = None
