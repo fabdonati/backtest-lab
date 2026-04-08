@@ -52,4 +52,8 @@ larger symbol allocations contribute more to the reported turnover when they reb
 signal turnover remains useful for debugging how often a strategy actually flips its target weights.
 Portfolio reports also include per-symbol win/loss breakdowns derived from each sleeve's own
 realized return path.
+
+The CLI can export the full portfolio equity curve, per-symbol sleeve curves, a weighted
+buy-and-hold benchmark comparison curve, and a ready-to-view PNG chart for lightweight offline
+analysis.
 The CLI can also export these same diagnostics to a simple CSV file for downstream analysis.

@@ -174,3 +174,54 @@ def test_cli_writes_metrics_csv(tmp_path: Path) -> None:
     assert "portfolio,weighting_mode,custom" in metrics_csv
     assert "symbol:AAPL,weight,0.750000" in metrics_csv
     assert "symbol:AAPL,hit_rate,0.000000" in metrics_csv
+
+
+def test_cli_writes_equity_benchmark_and_chart_outputs(tmp_path: Path) -> None:
+    source = tmp_path / "normalized.csv"
+    weights = tmp_path / "weights.csv"
+    equity_output = tmp_path / "exports" / "equity_curve.csv"
+    sleeve_output_dir = tmp_path / "exports" / "sleeves"
+    comparison_output = tmp_path / "exports" / "comparison_curve.csv"
+    chart_output = tmp_path / "exports" / "equity_chart.png"
+    _write_market_data_toolkit_dataset(source)
+    _write_weights_file(weights)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "backtest_lab.cli",
+            str(source),
+            "--input-format",
+            "market-data-toolkit",
+            "--strategy",
+            "moving-average",
+            "--short-window",
+            "2",
+            "--long-window",
+            "3",
+            "--weights-file",
+            str(weights),
+            "--equity-output",
+            str(equity_output),
+            "--sleeve-output-dir",
+            str(sleeve_output_dir),
+            "--comparison-output",
+            str(comparison_output),
+            "--chart-output",
+            str(chart_output),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Backtest Report" in result.stdout
+    assert equity_output.exists()
+    assert "date,equity,position,turnover" in equity_output.read_text(encoding="utf-8")
+    assert (sleeve_output_dir / "aapl_equity_curve.csv").exists()
+    assert (sleeve_output_dir / "msft_equity_curve.csv").exists()
+    comparison_csv = comparison_output.read_text(encoding="utf-8")
+    assert "date,strategy_equity,benchmark_equity" in comparison_csv
+    assert chart_output.exists()
+    assert chart_output.stat().st_size > 0

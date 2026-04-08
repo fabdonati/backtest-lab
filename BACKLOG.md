@@ -3,7 +3,7 @@
 ## Near Term
 
 - Add report export formats beyond CSV if the workflow expands
-- Add a compact equity-curve export for downstream plotting
+- Add benchmark configuration beyond the default weighted buy-and-hold curve
 
 ## Later
 

@@ -118,6 +118,10 @@ def run_portfolio_backtest(
         symbol_count=len(symbols),
         weighting_mode="custom" if symbol_weights is not None else "equal-weight",
         average_raw_signal_turnover=_average_raw_signal_turnover(symbol_results),
+        sleeve_curves={
+            symbol: result.equity_curve
+            for symbol, result in symbol_results.items()
+        },
         symbol_summaries=symbol_summaries,
     )
 

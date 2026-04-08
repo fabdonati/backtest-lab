@@ -56,4 +56,5 @@ class BacktestResult:
     symbol_count: int = 1
     weighting_mode: str = "equal-weight"
     average_raw_signal_turnover: float = 0.0
+    sleeve_curves: dict[str, list[EquityPoint]] | None = None
     symbol_summaries: list[SymbolSummary] | None = None
