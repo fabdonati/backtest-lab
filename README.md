@@ -83,6 +83,35 @@ python -m backtest_lab.cli data/normalized.csv \
   --chart-output data/equity_chart.png
 ```
 
+## How to read the report and artifacts
+
+The terminal report and exported files answer different questions:
+
+- terminal report
+  - answers how the strategy behaved in aggregate
+  - `Average exposure` and `Max exposure` show how much portfolio capital was deployed over time
+  - `Max drawdown` and `Max drawdown duration` show the worst peak-to-trough pain and how long recovery took
+  - `Hit rate`, `Winning periods`, `Losing periods`, and `Flat periods` summarize realized active periods
+  - `Average raw signal turnover` shows how often signals changed without regard to position sizing
+  - `Average capital turnover` shows how much capital actually moved after weights are applied
+- `--metrics-output`
+  - writes the same summary information in row form for spreadsheets or later analysis
+- `--equity-output`
+  - writes the portfolio equity curve over time
+- `--comparison-output`
+  - writes strategy equity beside the weighted buy-and-hold benchmark
+- `--sleeve-output-dir`
+  - writes one sleeve curve per symbol so you can inspect which allocation drove the result
+- `--chart-output`
+  - creates a single PNG overlay for a quick performance read without opening a notebook
+
+In practice, the most useful inspection order is:
+
+1. read the terminal report for aggregate behavior
+2. inspect `comparison_curve.csv` to see whether the strategy added value relative to buy-and-hold
+3. inspect sleeve curves to see whether performance came from one symbol or from broad participation
+4. open the PNG chart for a fast visual check of path shape and drawdown clustering
+
 Run a mean-reversion backtest:
 
 ```bash
@@ -145,6 +174,15 @@ python -m backtest_lab.cli examples/market_data_toolkit/normalized.csv \
 
 That example uses the same normalized column layout produced by `market-data-toolkit`,
 so it mirrors the real workflow without requiring a live data fetch each time.
+
+If you want a plot-ready artifact check from the terminal, this is the fastest one:
+
+```bash
+sed -n '1,10p' data/comparison_curve.csv
+```
+
+You should see date-aligned columns for the strategy curve and the benchmark curve. That file is the
+right starting point for any later notebook or dashboard work.
 
 ## Package usage
 
