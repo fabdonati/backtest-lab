@@ -2,12 +2,6 @@
 
 `backtest-lab` is a compact Python backtesting engine for daily strategy research.
 
-## Why this project
-
-Backtests often start as one-off notebooks and end up carrying real decision-making weight.
-This project packages a small, deterministic research loop with reusable strategies,
-transaction-cost handling, metrics, and CLI execution.
-
 ## Features
 
 - Daily-bar CSV loader
