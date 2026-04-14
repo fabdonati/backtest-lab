@@ -83,12 +83,11 @@ python -m backtest_lab.cli data/normalized.csv \
   --chart-output data/equity_chart.png
 ```
 
-## How to read the report and artifacts
+## Outputs
 
-The terminal report and exported files answer different questions:
+The terminal report and exported files serve different purposes:
 
 - terminal report
-  - answers how the strategy behaved in aggregate
   - `Average exposure` and `Max exposure` show how much portfolio capital was deployed over time
   - `Max drawdown` and `Max drawdown duration` show the worst peak-to-trough pain and how long recovery took
   - `Hit rate`, `Winning periods`, `Losing periods`, and `Flat periods` summarize realized active periods
@@ -105,7 +104,7 @@ The terminal report and exported files answer different questions:
 - `--chart-output`
   - creates a single PNG overlay for a quick performance read without opening a notebook
 
-In practice, the most useful inspection order is:
+Typical inspection order:
 
 1. read the terminal report for aggregate behavior
 2. inspect `comparison_curve.csv` to see whether the strategy added value relative to buy-and-hold
@@ -120,8 +119,8 @@ btlab data/prices.csv --strategy mean-reversion --lookback 4 --threshold 0.03
 
 ## Quick weighted example
 
-This example is intentionally four bars long so the moving-average strategy has enough history
-to generate a signal and one additional bar to act on it.
+This example uses four bars so the moving-average strategy has enough history to generate a
+signal and one additional bar on which to apply it.
 
 ```csv
 symbol,timestamp,open,high,low,close,volume

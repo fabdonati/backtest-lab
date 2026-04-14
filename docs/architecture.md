@@ -36,8 +36,8 @@ when the target position changes, scaled by turnover.
 
 ## Scope
 
-This repo is intentionally small. The focus is correctness, signal alignment, and clear APIs,
-not production-grade brokerage modeling.
+The scope here is correctness, signal alignment, and clear APIs rather than production-grade
+brokerage modeling.
 
 ## Multi-asset behavior
 
